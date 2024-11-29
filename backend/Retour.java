@@ -1,112 +1,114 @@
 
-import java.io.*;
 import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
-/**
- * 
- */
 public class Retour {
 
-    /**
-     * Default constructor
-     */
-    public Retour() {
-    }
+    Scanner scanner = new Scanner(System.in);
 
-    /**
-     * 
-     */
     private int id_retour;
 
-    /**
-     * 
-     */
     private int montant;
 
-    /**
-     * 
-     */
-    private Date date_retour;
+    private java.sql.Date date_retour;
 
-    /**
-     * 
-     */
-    private int etat_retour;
+    private String etat_retour = "En maintenance";
 
-    /**
-     * 
-     */
-    private int frais_supplementaires;
+    private int frais_supplementaires = 0;
 
-    /**
-     * @return
-     */
+    Retour(int id_retour, int montant, java.sql.Date date_retour, String etat_retour, int frais_supplementaires) {
+        this.id_retour = id_retour;
+        this.montant = montant;
+        this.date_retour = date_retour;
+        this.etat_retour = etat_retour;
+        this.frais_supplementaires = frais_supplementaires;
+    }
+
     public int getIdRetour() {
-        // TODO implement here
-        return 0;
+
+        return id_retour;
     }
 
-    /**
-     * @param int newId_retour 
-     * @return
-     */
     public void setIdRetour(int newId_retour) {
-        // TODO implement here
+        id_retour = newId_retour;
     }
 
-    /**
-     * @return
-     */
     public int getMontant() {
-        // TODO implement here
-        return 0;
+
+        return montant;
     }
 
-    /**
-     * @param int newMontant 
-     * @return
-     */
     public void setMontant(int newMontant) {
-        // TODO implement here
+        montant = newMontant;
     }
 
-    /**
-     * @return
-     */
     public Date getDateRetour() {
-        // TODO implement here
-        return null;
+
+        return date_retour;
     }
 
-    /**
-     * @param Date newDate_retour 
-     * @return
-     */
-    public void setDateRetour(Date newDate_retour) {
-        // TODO implement here
+    public void setDateRetour(java.sql.Date newDate_retour) {
+        date_retour = newDate_retour;
     }
 
-    /**
-     * @return
-     */
     public int getFraisSupplementaires() {
-        // TODO implement here
-        return 0;
+
+        return frais_supplementaires;
     }
 
-    /**
-     * @param int newFrais_supplementaires 
-     * @return
-     */
     public void setFraisSupplementaires(int newFrais_supplementaires) {
-        // TODO implement here
+        frais_supplementaires = frais_supplementaires + newFrais_supplementaires;
     }
 
-    /**
-     * @return
-     */
+    public void setFraisSupplementairesNull() {
+        frais_supplementaires = 0;
+    }
+
+    public void setEtatDisponible() {
+        etat_retour = "Disponible";
+
+    }
+
+    public String getEtat() {
+
+        return etat_retour;
+    }
+
     public void processusRetour() {
-        // TODO implement here
+
+        System.out.println("Ajoute le nouveau frais:");
+        int x = Integer.parseInt(scanner.nextLine());
+
+        setFraisSupplementaires(x);
+
+        System.out.println("Est qu'il y a encore des dommages et des frais supplémentaires, Réponds par Oui/Non :");
+        String reponse = scanner.nextLine();
+
+        if (reponse.equals("Oui")) {
+            processusRetour();
+        }
+
     }
 
+    public void saveToDatabase(Connection conn, java.sql.Date date_retour, int id_retour, int id_reservation,
+            String etat_retour, int frais_supplementaires) throws SQLException {// good
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String formattedDate = sdf.format(date_retour); // Convert Date to string in 'YYYY-MM-DD' format
+
+        String creatSQL = "INSERT INTO Retour(id_retour, id_reservation, date_retour, etat_retour, frais_supplementaires) VALUES (?,?,?,?,?)";
+        PreparedStatement stmt = conn.prepareStatement(creatSQL);
+        stmt.setInt(1, id_retour);
+        stmt.setInt(2, id_reservation);
+        stmt.setString(3, formattedDate); // Remplacez par une Date si nécessaire
+        stmt.setString(4, etat_retour);
+        stmt.setInt(5, frais_supplementaires);
+        stmt.executeUpdate();
+        System.out.println("Données insérées avec succès !");
+    }
 }
+
