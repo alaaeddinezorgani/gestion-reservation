@@ -16,6 +16,7 @@ public class GUI  extends JFrame{
 		sp.setMainAnimation(true);
 		sp.setSpeed(4);
 		sp.setResponsiveMinWidth(600);
+		setVisible(true);
 		
 	}
 	private void initComponents() {

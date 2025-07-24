@@ -77,13 +77,12 @@ public class LoginForm extends javax.swing.JFrame {
 					rs = pst.executeQuery();
 					if(rs.next()){
 						String role = rs.getString("role"); // Get the role from the result set
-
 		                JOptionPane.showMessageDialog(null, "Login Successful");
 
 		                // Check the role and open the corresponding GUI
-		                if ("admin".equals(role)) {
+		                if ("admin".equalsIgnoreCase(role)) {
 		                    new GUI().setVisible(true);  // Admin GUI
-		                } else if ("gestionnaire".equals(role)) {
+		                } else if ("gestionnaire".equalsIgnoreCase(role)) {
 		                    new GUIGestionnaire().setVisible(true);  // Gestionnaire GUI
 		                }
 						dispose();

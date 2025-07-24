@@ -35,6 +35,7 @@ public class searchCompte extends javax.swing.JFrame {
 		this.conn = conn;
 		initComponents();
 		setSize(new Dimension(573, 239));
+        setLocationRelativeTo(null);
 	}
 
 	/**

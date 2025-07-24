@@ -480,6 +480,12 @@ public class Reservations extends javax.swing.JPanel {
         jButton4.setFont(new java.awt.Font("sansserif", 1, 17)); // NOI18N
         jButton4.setForeground(new java.awt.Color(16, 84, 129));
         jButton4.setText("Historique");
+        jButton4.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                new Historique(conn).setVisible(true);
+            }
+        });
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -674,7 +680,7 @@ public class Reservations extends javax.swing.JPanel {
         model.setRowCount(0); // Clear existing data
         try {
             conn = backend.ConnectionManager.getConnection();
-            String query = "SELECT * FROM Reservation";
+            String query = "SELECT * FROM Reservation WHERE statut = 'en cours'";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
             while (rs.next()) {

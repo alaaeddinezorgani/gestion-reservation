@@ -32,8 +32,9 @@ public class searchClient extends javax.swing.JFrame {
     	this.conn = conn;
     	this.cli = clients;
 		initComponents();
-		setSize(new Dimension(573, 239));
-		
+        setLocationRelativeTo(null);
+        setSize(new Dimension(573, 239));
+
 	}
 
 	/**

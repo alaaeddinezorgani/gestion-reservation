@@ -30,6 +30,7 @@ public class searchVehicule extends javax.swing.JFrame {
         this.vehic = vehicules;
         initComponents();
         setSize(new Dimension(573, 239));
+        setLocationRelativeTo(null);
     }
     /**
      * This method is called from within the constructor to initialize the form.

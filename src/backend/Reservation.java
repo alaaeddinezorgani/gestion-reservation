@@ -151,7 +151,7 @@ public class Reservation {
 
     public static ArrayList<Reservation> getHistorique(Connection conn) throws SQLException {
     	ArrayList<Reservation> historique = new ArrayList<>();
-        String selectSQL = "SELECT * FROM Reservation ORDER BY date_debut";
+        String selectSQL = "SELECT * FROM Reservation WHERE ORDER BY date_debut";
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(selectSQL);
         while (rs.next()) {
@@ -177,15 +177,17 @@ public class Reservation {
         PreparedStatement stmt = conn.prepareStatement(selectSQL);
         stmt.setInt(1, id_reservation);
         ResultSet rs = stmt.executeQuery();
+        Reservation reservation;
+        if (rs.next()) {
             int id_client = rs.getInt("id_client");
             int id_vehicule = rs.getInt("id_vehicule");
-            long millis = Long.parseLong(rs.getString("date_debut"));
-            LocalDate dateDebut = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate();
-            millis = Long.parseLong(rs.getString("date_debut"));
-            LocalDate dateFin = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate dateDebut = LocalDate.parse(rs.getString("date_debut"));
+            LocalDate dateFin = LocalDate.parse(rs.getString("date_fin"));
             int montantTotal = rs.getInt("montant_total");
             String statut = rs.getString("statut");
-            Reservation reservation = new Reservation(conn, id_reservation, id_client, id_vehicule, dateDebut, dateFin, montantTotal, statut);
+            reservation = new Reservation(conn, id_reservation, id_client, id_vehicule, dateDebut, dateFin, montantTotal, statut);
+        } else
+            throw new SQLException("Reservation non-existant");
     return reservation;
 
 }
