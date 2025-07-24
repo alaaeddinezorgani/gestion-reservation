@@ -1,57 +1,28 @@
-package backend;
-
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
 
 public class Paiement {
 
-    private int id_paiement;
-    private int montant;
-    private LocalDate date_paiment;
-    private Reservation reservation;
-    private String mode_de_paiment;
-    private int frais_supplimantaires;
+    Scanner scanner = new Scanner(System.in);
 
-    Paiement(int id_paiement, int montant, LocalDate date_paiment) {
+    private int id_paiement;
+
+    private int montant;
+
+    private Date date_paiment;
+
+    Paiement(int id_paiement, int montant, Date date_paiment) {
         this.id_paiement = id_paiement;
         this.montant = montant;
         this.date_paiment = date_paiment;
-   
-    }
-    
-    Paiement(Connection conn, int id_reservation, int montant, LocalDate date_paiment, String mode_paiement) throws SQLException{
-    	String selectMaxIdSQL = "SELECT MAX(id_paiement) FROM Paiement";
-        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(selectMaxIdSQL)) {
-            if (rs.next()) {
-                this.setIdPaiement(rs.getInt(1) + 1);; // Increment the max id by 1
-            } else {
-                this.setIdPaiement(1); // Default to 1 if no records exist
-            }
-        }
-        this.setMontant(montant);
-        this.setDatePaiement(date_paiment);
-        this.setModePaiment(mode_paiement);
-        this.setReservation(Reservation.getReservation(conn, id_reservation));
-        String insertSQL = "INSERT INTO Paiement(id_paiement, id_reservation, montant, date_paiement, mode_paiement) VALUES(?,?,?,?,?)";
-        PreparedStatement stmt = conn.prepareStatement(insertSQL);
-        stmt.setInt(1, this.getIdPaiement());
-        stmt.setInt(2, this.reservation.getIdReservation());
-        stmt.setInt(3, this.getMontant());
-        stmt.setString(4, this.getDatePaiement().toString());
-        stmt.setString(5, this.getModePaiement());
-        stmt.executeUpdate();
-        
-        
     }
 
     public int getIdPaiement() {
+
         return id_paiement;
     }
 
@@ -68,31 +39,15 @@ public class Paiement {
         montant = newMontant;
     }
 
-    public LocalDate getDatePaiement() {
+    public Date getDatePaiement() {
+
         return date_paiment;
     }
 
-    public void setDatePaiement(LocalDate newDate_paiment) {
+    public void setDatePaiement(Date newDate_paiment) {
         date_paiment = newDate_paiment;
     }
 
-    public String getModePaiement() {
-    	return this.mode_de_paiment;
-    }
-    
-    public void setModePaiment(String newModePaiement) {
-    	this.mode_de_paiment = newModePaiement;
-    }
-    
-    public void setReservation(Reservation reservation) {
-    	this.reservation = reservation;
-    }
-    
-    public Reservation getReservation() {
-    	return this.reservation;
-    }
-    
-    /*
     public void effectuerPaiement(int argentDonné) {
         if (argentDonné > this.montant) {
             int x = argentDonné - this.montant;
@@ -111,8 +66,6 @@ public class Paiement {
         }
     }
 
-    */
-    /*
     public void effectuerPaiementMaintenance(int argentDonné, Retour retour) {
         if (argentDonné > retour.getFraisSupplementaires()) {
             int x = argentDonné - retour.getFraisSupplementaires();
@@ -130,9 +83,7 @@ public class Paiement {
             System.out.println("Paiement de la maintenance effectué");
         }
     }
-    */
 
-    /*
     public void saveToDatabase(Connection conn, int id_paiement, int montant, Date date_paiment) throws SQLException {// good
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -146,5 +97,6 @@ public class Paiement {
         stmt.executeUpdate();
         System.out.println("Données insérées avec succès !");
     }
-*/
+
 }
+

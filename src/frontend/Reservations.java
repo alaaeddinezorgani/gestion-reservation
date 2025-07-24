@@ -8,18 +8,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Locale;
 
-import javax.swing.JComboBox;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import backend.Client;
 import backend.Reservation;
+import backend.Vehicule;
 
 /**
  *
@@ -27,9 +27,10 @@ import backend.Reservation;
  */
 public class Reservations extends javax.swing.JPanel {
 	static Connection conn;
-	 
-	backend.Client c;
-	backend.Vehicule v;
+
+	backend.Client cli;
+	backend.Vehicule vehic;
+    long daysBetween;
     /**
      * Creates new form NewJPanel1
      */
@@ -38,7 +39,11 @@ public class Reservations extends javax.swing.JPanel {
         
         populateClientComboBox(clientCB);
         populateVehiculeComboBox(vehiculeCB);
-       
+        try {
+            populateTable();
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
         
     }
     
@@ -144,23 +149,42 @@ public class Reservations extends javax.swing.JPanel {
         enregistrerButton.setText("Enregistrer");
         enregistrerButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		
+        		try {
+                    conn = backend.ConnectionManager.getConnection();
+                    Reservation res = new Reservation(conn, cli, vehic, LocalDate.parse(dateDTF.getText()), LocalDate.parse(dateFTF.getText()));
+                    populateTable();
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
         	}
         });
 
         clientCB.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				
+				try {
+                    Client c = backend.Client.getClient(conn, Integer.parseInt(clientCB.getSelectedItem().toString()));
+                    cli = c;
+                    clientNameLabel.setText(c.getNom());
+                    clientPrenomLabel.setText(c.getPrenom());
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
+
 				
 			}
         });
         vehiculeCB.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				
-				
-				
+                try {
+                    backend.Vehicule v = backend.Vehicule.getVehicule(conn, Integer.parseInt(vehiculeCB.getSelectedItem().toString()));
+                    vehic = v;
+                    marqueLabel.setText(v.getMarque());
+                    prixLabel.setText(String.valueOf(v.getPrixLocationJour()));
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
 			}
         });
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -437,14 +461,20 @@ public class Reservations extends javax.swing.JPanel {
         jButton2.setFont(new java.awt.Font("sansserif", 1, 17)); // NOI18N
         jButton2.setForeground(new java.awt.Color(16, 84, 129));
         jButton2.setText("Supprimer");
+        jButton2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setFont(new java.awt.Font("sansserif", 1, 17)); // NOI18N
         jButton3.setForeground(new java.awt.Color(16, 84, 129));
         jButton3.setText("Retour");
         jButton3.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		new Retours().setVisible(true);
-        	}
+        	public void actionPerformed(ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
         });
 
         jButton4.setFont(new java.awt.Font("sansserif", 1, 17)); // NOI18N
@@ -503,7 +533,7 @@ public class Reservations extends javax.swing.JPanel {
                 return types [columnIndex];
             }
         });
-        jTable2.setPreferredSize(new java.awt.Dimension(1250, 200));
+        //jTable2.setPreferredSize(new java.awt.Dimension(1250, 200));
         jScrollPane2.setViewportView(jTable2);
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
@@ -524,52 +554,142 @@ public class Reservations extends javax.swing.JPanel {
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton3ActionPerformed(ActionEvent evt) {
+        // Get the selected row index
+        int selectedRow = jTable2.getSelectedRow();
+
+        // Check if a row is selected
+        if (selectedRow != -1) {
+            // Get the value in the first column (index 0) of the selected row
+            String value = jTable2.getValueAt(selectedRow, 0).toString();
+            try {
+                Reservation curr = Reservation.getReservation(conn, Integer.parseInt(value));
+                new Retours(conn, curr, this).setVisible(true);
+            } catch (SQLException sqle) {
+                sqle.printStackTrace();
+            }
+        }
+    }
+
+    private void jButton2ActionPerformed(ActionEvent evt) {
+        // Get the selected row index
+        int selectedRow = jTable2.getSelectedRow();
+
+        // Check if a row is selected
+        if (selectedRow != -1) {
+            // Get the value in the first column (index 0) of the selected row
+            Object value = jTable2.getValueAt(selectedRow, 0);
+
+            // Display a confirmation dialog
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to delete this reservation?",
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            // If user confirms deletion
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    int id = Integer.parseInt(value.toString());
+                    Reservation toDelete = backend.Reservation.getReservation(conn, id);
+                    backend.Reservation.annulerReservation(conn, toDelete);
+                    populateTable(); // Refresh the table
+                    JOptionPane.showMessageDialog(this, "Reservation deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Error deleting vehicule: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } else {
+            // Warn the user to select a row
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please select a reservation to delete.",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE
+            );
+        }
+    }
+
     private void dateFTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateFTFActionPerformed
-        // TODO add your handling code here:
+        LocalDate startDate = LocalDate.parse(dateDTF.getText());
+        LocalDate endDate = LocalDate.parse(dateFTF.getText());
+        if (startDate.isBefore(endDate) && endDate.isAfter(startDate)) {
+            daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+            dureeLabel.setText(String.valueOf(daysBetween));
+            dureeTF.setText(String.valueOf(daysBetween * vehic.getPrixLocationJour()));
+        }
     }//GEN-LAST:event_dateFTFActionPerformed
 
     private void dateDTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateDTFActionPerformed
-        // TODO add your handling code here:
+        LocalDate startDate = LocalDate.parse(dateDTF.getText());
+        LocalDate endDate = LocalDate.parse(dateFTF.getText());
+        if (startDate.isBefore(endDate) && endDate.isAfter(startDate)) {
+            daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+            dureeLabel.setText(String.valueOf(daysBetween));
+            dureeTF.setText(String.valueOf(daysBetween * vehic.getPrixLocationJour()));
+        }
+
+
     }//GEN-LAST:event_dateDTFActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        JOptionPane.showMessageDialog(null, "NET Beans stopped working and i forgot to design this window so...\nModifying Reservation by calling the appropriate function from the backend's 'Reservation' class works just fine though.");
     }//GEN-LAST:event_jButton1ActionPerformed
 
     public void populateClientComboBox(JComboBox<String> comboBox) {
         comboBox.removeAllItems(); // Clear existing items
-       
+        try {
+            conn = backend.ConnectionManager.getConnection();
+            String query = "SELECT * FROM Client";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                comboBox.addItem(rs.getString("id_client")); // add each name to the combo box
+            }
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
     }
     
     public void populateVehiculeComboBox(JComboBox<String> comboBox) {
         comboBox.removeAllItems(); // Clear existing items
-      
+        try {
+            conn = backend.ConnectionManager.getConnection();
+            String query = "SELECT * FROM Vehicule";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                comboBox.addItem(rs.getString("id_vehicule")); // add each name to the combo box
+            }
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
     }
     
     public void populateTable() throws SQLException {
         DefaultTableModel model = (DefaultTableModel) jTable2.getModel();
         model.setRowCount(0); // Clear existing data
         try {
-            if(conn==null) conn = DriverManager.getConnection("jdbc:sqlite:/home/alaaeddine/ws/eclipse/Eag/src/backend/gestion-reservation.db");
+            conn = backend.ConnectionManager.getConnection();
             String query = "SELECT * FROM Reservation";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("id_reservation"),
                     rs.getInt("id_client"),
                     rs.getInt("id_vehicule"),
-                    rs.getDate("date_debut"),
-                    rs.getDate("date_fin"),
-                    rs.getInt("montant"),
+                    rs.getString("date_debut"),
+                    rs.getString("date_fin"),
+                    rs.getInt("montant_total"),
                     rs.getString("statut")
                 };
                 model.addRow(row);
             }
-            //conn.close();
             System.out.println("Table populated successfully!");
-            conn.close();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }

@@ -15,12 +15,12 @@ public class Retour {
 
     private int id_retour;
     private int montant;
-    private java.sql.Date date_retour;
+    private LocalDate date_retour;
     private String etat_retour = "En maintenance";
     private int frais_supplementaires = 0;
     private Reservation reservation;
 
-    Retour(int id_retour, int montant, java.sql.Date date_retour, String etat_retour, int frais_supplementaires) {
+    Retour(int id_retour, int montant, LocalDate date_retour, String etat_retour, int frais_supplementaires) {
         this.id_retour = id_retour;
         this.montant = montant;
         this.date_retour = date_retour;
@@ -28,7 +28,7 @@ public class Retour {
         this.frais_supplementaires = frais_supplementaires;
     }
     
-    public Retour(Connection conn, int id_reservation, java.sql.Date date_retour, String etat_retour, String mode_paiement) throws SQLException {
+    public Retour(Connection conn, int id_reservation, LocalDate date_retour, String etat_retour, String mode_paiement) throws SQLException {
     	String selectMaxIdSQL = "SELECT MAX(id_retour) FROM Retour";
         try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(selectMaxIdSQL)) {
             if (rs.next()) {
@@ -44,8 +44,8 @@ public class Retour {
 		//System.out.println("DateDebut (value): " + reservation.getDateDebut());
 		//System.out.println("DateRetour (type): " + this.getDateRetour().getClass().getName());
 		//System.out.println("DateRetour (value): " + this.getDateRetour());
-		LocalDate dateD = reservation.getDateDebut().toLocalDate();
-		LocalDate dateF = this.getDateRetour().toLocalDate();
+		LocalDate dateD = reservation.getDateDebut();
+		LocalDate dateF = this.getDateRetour();
 		this.setMontant(((int) ChronoUnit.DAYS.between(dateD, dateF)) * reservation.vehicule.getPrixLocationJour());
 		//System.out.println("Start Date: " + dateD);
 		//System.out.println("Return Date: " + dateF);
@@ -64,7 +64,7 @@ public class Retour {
        PreparedStatement stmt = conn.prepareStatement(insertSQL);
        stmt.setInt(1, this.getIdRetour());
        stmt.setInt(2, this.reservation.getIdReservation());
-       stmt.setDate(3, this.getDateRetour());
+       stmt.setString(3, this.getDateRetour().toString());
        stmt.setString(4, this.getEtatRetour());
        stmt.setInt(5, this.getFraisSupplementaires());
        stmt.executeUpdate();
@@ -87,11 +87,11 @@ public class Retour {
         montant = newMontant;
     }
 
-    public Date getDateRetour() {
+    public LocalDate getDateRetour() {
         return date_retour;
     }
 
-    public void setDateRetour(java.sql.Date newDate_retour) {
+    public void setDateRetour(LocalDate newDate_retour) {
         date_retour = newDate_retour;
     }
 

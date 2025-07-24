@@ -4,8 +4,13 @@
  */
 package frontend;
 
+import backend.Reservation;
+import backend.Retour;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  *
@@ -16,10 +21,18 @@ public class Retours extends javax.swing.JFrame {
     /**
      * Creates new form Retour
      */
+    Connection conn;
+    Reservation reservation;
+    Reservations window;
     public Retours() {
         initComponents();
     }
-
+    public Retours(Connection conn, Reservation reservation, Reservations window) {
+        initComponents();
+        this.conn = conn;
+        this.reservation = reservation;
+        this.window = window;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -102,7 +115,19 @@ public class Retours extends javax.swing.JFrame {
         jButton1.setText("Valider");
         jButton1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		dispose();
+        		String etat = etatCB.getSelectedItem().toString();
+                String pmethod;
+                if (chequeRB.isSelected())
+                    pmethod = "cheque";
+                else
+                    pmethod = "monnaie";
+                try {
+                    new backend.Retour(conn, reservation.getIdReservation(), reservation.getDateFin(), etat, pmethod);
+                    window.populateTable();
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
+                dispose();
         	}
         });
 
